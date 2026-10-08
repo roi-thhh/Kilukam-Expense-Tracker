@@ -45,7 +45,6 @@
 | 🏷️ **Themed Category Badges** | Jewel-toned glassmorphic squircle badges paired semantically with categories (Dining, Transit, Shopping, Tech, Bills, Health). |
 | 📤 **One-Tap Share Analytics** | Generates a sleek branded expense card directly to WhatsApp, Telegram, and social platforms. |
 | 🎯 **Monthly Budget Goal** | Set custom monthly limits with live progress bar and remaining balance tracking. |
-| 🚀 **Anti-AI Slop Logo Launch** | Minimalist ~800ms brand entrance that auto-bypasses entirely during incoming payments for instantaneous response. |
 
 ---
 
