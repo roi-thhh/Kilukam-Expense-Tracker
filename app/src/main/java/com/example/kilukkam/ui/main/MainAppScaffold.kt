@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kilukkam.data.DataRepository
 import com.example.kilukkam.theme.BrandLime
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +28,11 @@ enum class Screen {
 fun MainAppScaffold(
     repository: DataRepository,
     initialAmount: Double? = null,
+    initialMerchant: String? = null,
+    initialAccount: String? = null,
+    initialAccountType: String? = null,
+    initialSuggestedCategory: String? = null,
+    isIncomeIntent: Boolean = false,
     showCategorizeDialog: Boolean = false
 ) {
     val factory = object : ViewModelProvider.Factory {
@@ -45,6 +49,9 @@ fun MainAppScaffold(
     var showManualEntry by remember { mutableStateOf(false) }
     
     var currentInitialAmount by remember { mutableStateOf(initialAmount) }
+    var currentMerchant by remember { mutableStateOf(initialMerchant) }
+    var currentAccount by remember { mutableStateOf(initialAccount) }
+    var currentSuggestedCategory by remember { mutableStateOf(initialSuggestedCategory) }
     var currentShowDialog by remember { mutableStateOf(showCategorizeDialog) }
 
     Scaffold(
@@ -94,10 +101,16 @@ fun MainAppScaffold(
                     MainScreen(
                         viewModel = viewModel,
                         initialAmount = currentInitialAmount,
+                        initialMerchant = currentMerchant,
+                        initialAccount = currentAccount,
+                        initialSuggestedCategory = currentSuggestedCategory,
                         showCategorizeDialog = currentShowDialog,
                         onDialogDismissed = { 
                             currentShowDialog = false
                             currentInitialAmount = null
+                            currentMerchant = null
+                            currentAccount = null
+                            currentSuggestedCategory = null
                         },
                         onProfileClick = {
                             currentScreen = Screen.Settings
@@ -118,9 +131,10 @@ fun MainAppScaffold(
             if (showManualEntry) {
                 ManualEntryDialog(
                     categories = state.categories,
+                    accounts = state.accounts,
                     onDismiss = { showManualEntry = false },
-                    onSave = { amount, category ->
-                        viewModel.addExpense(amount, category)
+                    onSave = { amount, category, merchant, account, accountType ->
+                        viewModel.addExpense(amount, category, merchant, account, accountType)
                         showManualEntry = false
                     },
                     onAddCategory = { viewModel.addCategory(it) }

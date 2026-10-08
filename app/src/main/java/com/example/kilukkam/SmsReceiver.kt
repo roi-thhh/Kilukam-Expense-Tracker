@@ -19,30 +19,47 @@ class SmsReceiver : BroadcastReceiver() {
                 
                 Log.d("SmsReceiver", "Received SMS from: $sender, Body: $messageBody")
                 
-                if (TransactionParser.isUpiTransaction(messageBody, sender)) {
-                    val amount = TransactionParser.extractAmount(messageBody)
-                    if (amount != null) {
-                        Log.d("SmsReceiver", "Extracted Amount: $amount")
+                if (TransactionParser.isTransactionalSms(messageBody, sender)) {
+                    val parsed = TransactionParser.parse(messageBody, sender)
+                    if (parsed != null) {
+                        Log.d("SmsReceiver", "Parsed Transaction: $parsed")
                         
                         val categoryIntent = Intent(context, MainActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            putExtra("transaction_amount", amount)
+                            putExtra("transaction_amount", parsed.amount)
+                            putExtra("transaction_merchant", parsed.merchant)
+                            putExtra("transaction_account", parsed.accountName)
+                            putExtra("transaction_account_type", parsed.accountType)
+                            putExtra("suggested_category", parsed.suggestedCategory)
+                            putExtra("is_income", parsed.isIncome)
                             putExtra("show_categorize_dialog", true)
                         }
                         
                         val pendingIntent = PendingIntent.getActivity(
                             context,
-                            amount.toInt(),
+                            parsed.amount.toInt() + System.currentTimeMillis().toInt(),
                             categoryIntent,
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
 
+                        val title = if (parsed.merchant != null) {
+                            "Payment to ${parsed.merchant}"
+                        } else {
+                            if (parsed.isIncome) "Income Detected" else "New Payment Detected"
+                        }
+                        
+                        val contentText = if (parsed.merchant != null) {
+                            "₹${"%.0f".format(parsed.amount)} via ${parsed.accountName}. Tap to categorize."
+                        } else {
+                            "₹${"%.0f".format(parsed.amount)} paid. Tap to categorize."
+                        }
+
                         val builder = NotificationCompat.Builder(context, "TRANSACTION_CHANNEL")
                             .setSmallIcon(R.mipmap.ic_launcher)
-                            .setContentTitle("New Payment Detected")
-                            .setContentText("₹$amount paid. Tap to categorize.")
+                            .setContentTitle(title)
+                            .setContentText(contentText)
                             .setPriority(NotificationCompat.PRIORITY_HIGH)
-                            .setCategory(NotificationCompat.CATEGORY_CALL) // Tricks Android into showing it immediately
+                            .setCategory(NotificationCompat.CATEGORY_CALL) // Instant heads-up display
                             .setFullScreenIntent(pendingIntent, true)
                             .setAutoCancel(true)
 

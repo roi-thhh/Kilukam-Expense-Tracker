@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kilukkam.data.Account
 import com.example.kilukkam.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,15 +30,24 @@ import com.example.kilukkam.theme.*
 fun ManualEntryDialog(
     isIncome: Boolean = false,
     categories: List<String>,
+    accounts: List<Account> = emptyList(),
     onDismiss: () -> Unit,
-    onSave: (Double, String) -> Unit,
+    onSave: (amount: Double, category: String, merchant: String?, account: String, accountType: String) -> Unit,
     onAddCategory: (String) -> Unit
 ) {
     var amountText by remember { mutableStateOf("") }
+    var merchantText by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     
-    // Recommendations (if categories are empty)
-    val defaultRecommendations = listOf("Food \uD83C\uDF54", "Transport \uD83D\uDE97", "Bills \uD83D\uDCA1", "Tech \uD83D\uDCBB")
+    val fallbackAccounts = listOf(
+        Account("1", "Primary Bank", "BANK"),
+        Account("2", "Credit Card", "CREDIT_CARD"),
+        Account("3", "Cash Wallet", "CASH")
+    )
+    val displayAccounts = if (accounts.isEmpty()) fallbackAccounts else accounts
+    var selectedAccount by remember { mutableStateOf(displayAccounts.firstOrNull() ?: fallbackAccounts[0]) }
+
+    val defaultRecommendations = listOf("Food & Dining", "Transport", "Shopping", "Bills & Utilities", "Tech & Gear")
     val displayCategories = if (categories.isEmpty()) defaultRecommendations else categories
     
     var newCategoryText by remember { mutableStateOf("") }
@@ -46,37 +56,85 @@ fun ManualEntryDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfacePrimary,
-        shape = RoundedCornerShape(32.dp), // Folder card feel
+        shape = RoundedCornerShape(32.dp),
         modifier = Modifier.border(1.dp, BorderSubtle, RoundedCornerShape(32.dp)),
         title = { 
             Text(
                 if (isIncome) "Add Income" else "Add Expense", 
                 color = TextPrimary,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp
+                fontSize = 22.sp
             ) 
         },
         text = {
             Column {
+                // Amount Field
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
                     label = { Text("Amount (₹)", color = TextSecondary) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrandLime,
+                        focusedBorderColor = if (isIncome) AccentCyan else BrandLime,
                         unfocusedBorderColor = BorderSubtle,
-                        focusedTextColor = BrandLime,
+                        focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary,
                         cursorColor = BrandLime
                     ),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
                 )
 
-                Text("Category", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+                // Optional Merchant / Store Field
+                if (!isIncome) {
+                    OutlinedTextField(
+                        value = merchantText,
+                        onValueChange = { merchantText = it },
+                        label = { Text("Merchant / Store (Optional)", color = TextSecondary) },
+                        placeholder = { Text("e.g. Swiggy, Uber, Amazon", color = TextSecondary.copy(alpha = 0.5f)) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrandLime,
+                            unfocusedBorderColor = BorderSubtle,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary,
+                            cursorColor = BrandLime
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
+                    )
+                }
+
+                // Account Selector
+                Text("Paid via Account", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(displayAccounts) { acc ->
+                        val isSelected = selectedAccount.id == acc.id || selectedAccount.name == acc.name
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) AccentCyan.copy(alpha = 0.2f) else BackgroundElevated)
+                                .border(1.dp, if (isSelected) AccentCyan else Color.Transparent, RoundedCornerShape(12.dp))
+                                .clickable { selectedAccount = acc }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                acc.name, 
+                                color = if (isSelected) AccentCyan else TextPrimary, 
+                                fontWeight = FontWeight.Bold, 
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+
+                Text("Category", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
                 
-                // Horizontal scrolling chips
+                // Horizontal scrolling category chips
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -96,12 +154,11 @@ fun ManualEntryDialog(
                                 }
                                 .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Text(category, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(category, color = textColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
                     
                     item {
-                        // Add New button
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -110,7 +167,7 @@ fun ManualEntryDialog(
                                     showNewCategoryInput = true
                                     selectedCategory = ""
                                 }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
                             Icon(Icons.Default.Add, contentDescription = "Add", tint = if (showNewCategoryInput) PureBlack else TextPrimary)
                         }
@@ -131,7 +188,7 @@ fun ManualEntryDialog(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = AccentCyan,
                                 unfocusedBorderColor = BorderSubtle,
-                                focusedTextColor = AccentCyan,
+                                focusedTextColor = TextPrimary,
                                 unfocusedTextColor = TextPrimary,
                                 cursorColor = AccentCyan
                             ),
@@ -164,11 +221,16 @@ fun ManualEntryDialog(
                 onClick = { 
                     val amount = amountText.toDoubleOrNull()
                     if (amount != null && selectedCategory.isNotBlank()) {
-                        // If they picked a recommended category that wasn't in their list, add it to repository
                         if (categories.isEmpty() || !categories.contains(selectedCategory)) {
                             onAddCategory(selectedCategory)
                         }
-                        onSave(amount, selectedCategory) 
+                        onSave(
+                            amount, 
+                            selectedCategory, 
+                            merchantText.takeIf { it.isNotBlank() },
+                            selectedAccount.name,
+                            selectedAccount.type
+                        ) 
                     }
                 },
                 enabled = selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null,
@@ -176,13 +238,19 @@ fun ManualEntryDialog(
                     containerColor = if (isIncome) AccentCyan else BrandLime,
                     disabledContainerColor = BackgroundElevated
                 ),
-                shape = CircleShape
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text("Confirm", color = if (selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null) PureBlack else TextSecondary, fontWeight = FontWeight.Bold)
+                Text(
+                    "Confirm Entry", 
+                    color = if (selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null) PureBlack else TextSecondary, 
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp
+                )
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                 Text("Cancel", color = TextSecondary)
             }
         }

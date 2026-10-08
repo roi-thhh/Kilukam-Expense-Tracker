@@ -9,14 +9,14 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Material 3](https://img.shields.io/badge/Design-Material_3_Dark-C8FF24?style=for-the-badge&logo=google&logoColor=black)](https://m3.material.io)
-[![Release](https://img.shields.io/badge/Version-v3.0.0-00E5FF?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
+[![Release](https://img.shields.io/badge/Version-v3.1.0-00E5FF?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-FF4081?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, and a bespoke Neon Aurora dark fintech UI.</strong>
+  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, multi-account card management, goal vaults, and a bespoke Neon Aurora dark fintech UI.</strong>
 </p>
 
-[Download Latest APK (v3.0.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.0.0) • [Features](#-key-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started)
+[Download Latest APK (v3.1.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.1.0) • [Features](#-key-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started)
 
 ---
 
@@ -27,9 +27,10 @@
 **Kilukkam** is a modern, privacy-first personal finance application engineered for the fast-paced UPI and digital banking era. Rather than forcing you to open the app and manually record every coffee, grocery run, or fuel receipt, Kilukkam operates silently in the background:
 
 1. **Detects Transactions Instantly**: Intercepts official debit and credit SMS alerts from major Indian banks (HDFC, SBI, ICICI, Axis, Paytm, GPay, PhonePe, and more).
-2. **Intelligent RegEx Engine**: Automatically extracts the exact amount, merchant, and transaction type while screening out promotional spam, phishing, and fake lottery alerts.
-3. **Zero-Delay Heads-Up Notification**: Triggers an instant categorization prompt the moment you pay. Tap once to assign a category—done in under 2 seconds.
-4. **100% Offline & Private**: Zero cloud sync, zero telemetry, zero analytics tracking. Your sensitive financial data remains strictly encrypted on your device.
+2. **Intelligent Merchant & Account Parsing**: Automatically extracts the exact amount, merchant identity (Swiggy, Uber, Zomato, Amazon, etc.), and account / card number (`A/c ••4521`).
+3. **Smart Habit Learning**: Remembers which categories you pair with merchants, pre-selecting them automatically next time.
+4. **Target Vaults & Category Caps**: Direct savings into dedicated goal vaults and enforce category-by-category spending limits with live visual health indicators.
+5. **100% Offline & Private**: Zero cloud sync, zero telemetry, zero analytics tracking. Your sensitive financial data remains strictly encrypted on your device.
 
 ---
 
@@ -37,14 +38,16 @@
 
 | Feature | Description |
 | :--- | :--- |
+| 🧠 **Intelligent Merchant Extraction** | Heuristic parsing for 30+ merchants, UPI VPA cleaning, and intelligent habit learning that pre-selects categories based on past interactions. |
+| 🏦 **Multi-Account & Credit Card Hub** | Auto-detects accounts (HDFC, SBI, ICICI, Axis, etc.), differentiates Bank Accounts vs Credit Cards, and provides horizontal account filter chips. |
+| 🎯 **Target Vaults & Goal Tracking** | Create custom savings vaults (e.g. *Emergency Fund*, *New Mac*) with visual progress bars and one-tap quick deposits. |
+| 📊 **Category Budgets & Live Warnings** | Set custom monthly limits per category with dynamic progress meters and status badges (*Healthy*, *Warning*, *Exceeded*). |
 | ⚡ **Zero-Delay Transaction Detection** | Real-time `BroadcastReceiver` parses incoming banking SMS with sub-second latency and prompts instant categorization. |
 | 🎨 **Neon Aurora Dark UI** | Premium fintech aesthetic with deep obsidian surfaces (`#080909`), high-voltage Neon Lime accents (`#C8FF24`), and dual-layer radial glassmorphism. |
 | 💰 **Savings Vault & Quick Deposit** | Dedicated Savings tracking starting at ₹0.00 with fast top-up chips (`+₹500`, `+₹1000`, `+₹2000`, `+₹5000`). |
 | 📈 **Interactive Spending Flow** | Switch seamlessly between **1-Week**, **1-Month**, and **1-Year** dynamic trendlines with reactive bezier fills and spending velocity metrics. |
 | 🍩 **Neon Donut Analytics** | High-contrast animated segmented donut chart offering intuitive category-by-category expense distribution. |
-| 🏷️ **Themed Category Badges** | Jewel-toned glassmorphic squircle badges paired semantically with categories (Dining, Transit, Shopping, Tech, Bills, Health). |
 | 📤 **One-Tap Share Analytics** | Generates a sleek branded expense card directly to WhatsApp, Telegram, and social platforms. |
-| 🎯 **Monthly Budget Goal** | Set custom monthly limits with live progress bar and remaining balance tracking. |
 
 ---
 
@@ -146,7 +149,8 @@ Kilukkam requests the following permissions purely for on-device processing:
 
 | Release | Version | Status | Download |
 | :--- | :--- | :--- | :--- |
-| **v3.0.0** | `3.0.0` (Build 3) | **Latest Stable** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.0.0) |
+| **v3.1.0** | `3.1.0` (Build 4) | **Latest Stable** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.1.0) |
+| **v3.0.0** | `3.0.0` (Build 3) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.0.0) |
 | **v2.0.0** | `2.0.0` (Build 2) | Deprecated | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v2.0.0) |
 
 ---

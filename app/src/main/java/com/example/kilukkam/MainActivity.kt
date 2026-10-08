@@ -36,6 +36,11 @@ class MainActivity : ComponentActivity() {
     requestPermissionsIfNeeded()
     
     val initialAmount = intent.getDoubleExtra("transaction_amount", -1.0).takeIf { it > 0 }
+    val initialMerchant = intent.getStringExtra("transaction_merchant")
+    val initialAccount = intent.getStringExtra("transaction_account")
+    val initialAccountType = intent.getStringExtra("transaction_account_type")
+    val initialSuggestedCategory = intent.getStringExtra("suggested_category")
+    val isIncome = intent.getBooleanExtra("is_income", false)
     val showDialog = intent.getBooleanExtra("show_categorize_dialog", false)
 
     val repository = DataRepository(applicationContext)
@@ -69,6 +74,11 @@ class MainActivity : ComponentActivity() {
                com.example.kilukkam.ui.main.MainAppScaffold(
                    repository = repository,
                    initialAmount = initialAmount,
+                   initialMerchant = initialMerchant,
+                   initialAccount = initialAccount,
+                   initialAccountType = initialAccountType,
+                   initialSuggestedCategory = initialSuggestedCategory,
+                   isIncomeIntent = isIncome,
                    showCategorizeDialog = showDialog
                ) 
            }
