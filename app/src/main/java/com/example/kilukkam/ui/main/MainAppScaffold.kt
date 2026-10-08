@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kilukkam.data.DataRepository
-import com.example.kilukkam.theme.PrimaryOrange
+import com.example.kilukkam.theme.BrandLime
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -43,6 +43,9 @@ fun MainAppScaffold(
 
     var currentScreen by remember { mutableStateOf(Screen.Dashboard) }
     var showManualEntry by remember { mutableStateOf(false) }
+    
+    var currentInitialAmount by remember { mutableStateOf(initialAmount) }
+    var currentShowDialog by remember { mutableStateOf(showCategorizeDialog) }
 
     Scaffold(
         bottomBar = {
@@ -56,9 +59,9 @@ fun MainAppScaffold(
                     selected = currentScreen == Screen.Dashboard,
                     onClick = { currentScreen = Screen.Dashboard },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = PrimaryOrange,
-                        selectedTextColor = PrimaryOrange,
-                        indicatorColor = PrimaryOrange.copy(alpha = 0.2f)
+                        selectedIconColor = BrandLime,
+                        selectedTextColor = BrandLime,
+                        indicatorColor = BrandLime.copy(alpha = 0.2f)
                     )
                 )
                 NavigationBarItem(
@@ -67,20 +70,9 @@ fun MainAppScaffold(
                     selected = currentScreen == Screen.Analytics,
                     onClick = { currentScreen = Screen.Analytics },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = PrimaryOrange,
-                        selectedTextColor = PrimaryOrange,
-                        indicatorColor = PrimaryOrange.copy(alpha = 0.2f)
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") },
-                    selected = currentScreen == Screen.Settings,
-                    onClick = { currentScreen = Screen.Settings },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = PrimaryOrange,
-                        selectedTextColor = PrimaryOrange,
-                        indicatorColor = PrimaryOrange.copy(alpha = 0.2f)
+                        selectedIconColor = BrandLime,
+                        selectedTextColor = BrandLime,
+                        indicatorColor = BrandLime.copy(alpha = 0.2f)
                     )
                 )
             }
@@ -88,8 +80,8 @@ fun MainAppScaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showManualEntry = true },
-                containerColor = PrimaryOrange,
-                contentColor = Color.White
+                containerColor = BrandLime,
+                contentColor = com.example.kilukkam.theme.PureBlack
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Expense")
             }
@@ -101,15 +93,25 @@ fun MainAppScaffold(
                 Screen.Dashboard -> {
                     MainScreen(
                         viewModel = viewModel,
-                        initialAmount = initialAmount,
-                        showCategorizeDialog = showCategorizeDialog
+                        initialAmount = currentInitialAmount,
+                        showCategorizeDialog = currentShowDialog,
+                        onDialogDismissed = { 
+                            currentShowDialog = false
+                            currentInitialAmount = null
+                        },
+                        onProfileClick = {
+                            currentScreen = Screen.Settings
+                        }
                     )
                 }
                 Screen.Analytics -> {
                     AnalyticsScreen(expenses = state.expenses)
                 }
                 Screen.Settings -> {
-                    SettingsScreen()
+                    SettingsScreen(
+                        viewModel = viewModel,
+                        onNavigateBack = { currentScreen = Screen.Dashboard }
+                    )
                 }
             }
             

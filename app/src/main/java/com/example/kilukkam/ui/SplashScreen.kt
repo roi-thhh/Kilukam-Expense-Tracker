@@ -3,9 +3,9 @@ package com.example.kilukkam.ui
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,91 +13,109 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kilukkam.R
-import com.example.kilukkam.theme.PrimaryOrange
+import com.example.kilukkam.theme.*
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
-    var startAnimation by remember { mutableStateOf(false) }
+    var hasFinished by remember { mutableStateOf(false) }
 
-    // Pulse animation for the background glow
-    val infiniteTransition = rememberInfiniteTransition()
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 0.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    // Logo entrance animation
-    val logoScale by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0.3f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
-    )
-    
-    val logoAlpha by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(1000)
-    )
-
-    LaunchedEffect(key1 = true) {
-        startAnimation = true
-        delay(2500) // Keep the splash screen visible for 2.5 seconds
-        onSplashFinished()
+    fun finishOnce() {
+        if (!hasFinished) {
+            hasFinished = true
+            onSplashFinished()
+        }
     }
+
+    // Fast 850ms entrance and auto-transition to the app
+    LaunchedEffect(Unit) {
+        delay(850)
+        finishOnce()
+    }
+
+    val transition = updateTransition(targetState = true, label = "LogoEntrance")
+    
+    val logoScale by transition.animateFloat(
+        transitionSpec = { tween(durationMillis = 650, easing = FastOutSlowInEasing) },
+        label = "LogoScale"
+    ) { if (it) 1f else 0.88f }
+
+    val logoAlpha by transition.animateFloat(
+        transitionSpec = { tween(durationMillis = 500, easing = LinearEasing) },
+        label = "LogoAlpha"
+    ) { if (it) 1f else 0f }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(BackgroundPrimary)
+            .clickable { finishOnce() },
         contentAlignment = Alignment.Center
     ) {
-        // Glowing Pulse
+        // Subtle ambient neon aura glow in center
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .scale(pulseScale)
-                .alpha(pulseAlpha)
-                .clip(CircleShape)
-                .background(PrimaryOrange)
+                .size(280.dp)
+                .alpha(0.12f)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(BrandLime, AccentCyan.copy(alpha = 0.5f), Color.Transparent)
+                    )
+                )
         )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.scale(logoScale).alpha(logoAlpha)
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .scale(logoScale)
+                .alpha(logoAlpha)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.kilukkam_logo),
-                contentDescription = "App Logo",
+            // Branded App Logo
+            Box(
                 modifier = Modifier
-                    .width(200.dp)
-                    .height(100.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Cool loading text
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(SurfacePrimary)
+                    .padding(18.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.kilukkam_logo),
+                    contentDescription = "Kilukkam Logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // App Name
             Text(
-                text = "Loading your finances...",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                text = "KILUKKAM",
+                color = TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 4.sp
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "EXPENSE TRACKER",
+                color = TextSecondary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp
             )
         }
     }

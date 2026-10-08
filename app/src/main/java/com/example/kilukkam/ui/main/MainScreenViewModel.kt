@@ -21,12 +21,20 @@ class MainScreenViewModel(private val repository: DataRepository) : ViewModel() 
     private fun loadData() {
         viewModelScope.launch {
             val expenses = repository.getExpenses().sortedByDescending { it.timestamp }
+            val incomes = repository.getIncomes().sortedByDescending { it.timestamp }
             val categories = repository.getCategories()
+            val userName = repository.getUserName()
+            val budgetGoal = repository.getBudgetGoal()
+            val savings = repository.getSavings()
             _uiState.update { 
                 it.copy(
                     isLoading = false,
                     expenses = expenses,
-                    categories = categories
+                    incomes = incomes,
+                    categories = categories,
+                    userName = userName,
+                    budgetGoal = budgetGoal,
+                    savings = savings
                 )
             }
         }
@@ -37,8 +45,37 @@ class MainScreenViewModel(private val repository: DataRepository) : ViewModel() 
         loadData()
     }
     
+    fun addIncome(amount: Double, category: String) {
+        repository.addIncome(amount, category)
+        loadData()
+    }
+
+    fun addSavings(amount: Double) {
+        repository.addSavings(amount)
+        loadData()
+    }
+
     fun addCategory(category: String) {
         repository.addCategory(category)
+        loadData()
+    }
+
+    fun updateUserName(name: String) {
+        repository.setUserName(name)
+        loadData()
+    }
+
+    fun updateBudgetGoal(goal: Double) {
+        repository.setBudgetGoal(goal)
+        loadData()
+    }
+
+    fun clearAllData() {
+        repository.clearAllData()
+        loadData()
+    }
+
+    fun refresh() {
         loadData()
     }
 }
@@ -46,5 +83,10 @@ class MainScreenViewModel(private val repository: DataRepository) : ViewModel() 
 data class MainScreenUiState(
     val isLoading: Boolean = false,
     val expenses: List<Expense> = emptyList(),
-    val categories: List<String> = emptyList()
+    val incomes: List<Expense> = emptyList(),
+    val categories: List<String> = emptyList(),
+    val userName: String = "Alex Miller",
+    val budgetGoal: Double = 25000.0,
+    val savings: Double = 0.0
 )
+

@@ -44,10 +44,27 @@ class MainActivity : ComponentActivity() {
     setContent {
       KilukkamTheme { 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { 
-           var showSplash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+           val prefs = applicationContext.getSharedPreferences("kilukkam_prefs", Context.MODE_PRIVATE)
+           val savedName = prefs.getString("user_name", null)
+           val isPaymentIntent = initialAmount != null || showDialog
+           val hasSeenSplash = prefs.getBoolean("has_seen_splash", false)
+
+           var showOnboarding by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(savedName == null) }
+           // Only show splash on the very first app launch; bypass completely when adding an amount / making payment
+           var showSplash by androidx.compose.runtime.remember { 
+               androidx.compose.runtime.mutableStateOf(!isPaymentIntent && !hasSeenSplash) 
+           }
            
            if (showSplash) {
-               com.example.kilukkam.ui.SplashScreen(onSplashFinished = { showSplash = false })
+               com.example.kilukkam.ui.SplashScreen(onSplashFinished = { 
+                   prefs.edit().putBoolean("has_seen_splash", true).apply()
+                   showSplash = false 
+               })
+           } else if (showOnboarding) {
+               com.example.kilukkam.ui.OnboardingScreen(onFinish = { name ->
+                   prefs.edit().putString("user_name", name).apply()
+                   showOnboarding = false
+               })
            } else {
                com.example.kilukkam.ui.main.MainAppScaffold(
                    repository = repository,

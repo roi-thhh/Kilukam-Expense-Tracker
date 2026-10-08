@@ -11,16 +11,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryOrange,
-    secondary = AccentPurple,
-    tertiary = PrimaryOrange,
-    background = DarkBackground,
-    surface = DarkSurface,
-    onPrimary = TextLight,
-    onSecondary = TextLight,
-    onTertiary = TextLight,
-    onBackground = TextLight,
-    onSurface = TextLight
+    primary = BrandLime,
+    secondary = AccentCyan,
+    tertiary = AccentPink,
+    background = BackgroundPrimary,
+    surface = SurfacePrimary,
+    surfaceVariant = BackgroundElevated,
+    onPrimary = PureBlack,
+    onSecondary = PureBlack,
+    onTertiary = TextPrimary,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
+    onSurfaceVariant = TextSecondary,
+    outline = BorderSubtle,
+    outlineVariant = BorderSubtle
 )
 
 private val LightColorScheme = DarkColorScheme // Enforce dark theme as per requirements
