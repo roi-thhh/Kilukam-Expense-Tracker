@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.example.kilukkam.data.DataRepository
@@ -43,11 +44,17 @@ class MainActivity : ComponentActivity() {
     setContent {
       KilukkamTheme { 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { 
-           MainScreen(
-               repository = repository,
-               initialAmount = initialAmount,
-               showCategorizeDialog = showDialog
-           ) 
+           var showSplash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+           
+           if (showSplash) {
+               com.example.kilukkam.ui.SplashScreen(onSplashFinished = { showSplash = false })
+           } else {
+               com.example.kilukkam.ui.main.MainAppScaffold(
+                   repository = repository,
+                   initialAmount = initialAmount,
+                   showCategorizeDialog = showDialog
+               ) 
+           }
         } 
       }
     }

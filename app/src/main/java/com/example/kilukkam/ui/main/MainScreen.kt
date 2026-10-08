@@ -34,19 +34,11 @@ import java.util.*
 
 @Composable
 fun MainScreen(
-    repository: DataRepository,
+    viewModel: MainScreenViewModel,
     initialAmount: Double? = null,
     showCategorizeDialog: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val factory = object : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainScreenViewModel(repository) as T
-        }
-    }
-    
-    val viewModel: MainScreenViewModel = viewModel(factory = factory)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showDialog by remember { mutableStateOf(showCategorizeDialog) }
