@@ -1,6 +1,6 @@
 package com.example.kilukkam.ui
 
-import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,42 +11,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 import com.example.kilukkam.R
 import com.example.kilukkam.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(onFinish: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
     
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
-        val infiniteTransition = rememberInfiniteTransition()
-        val gradientOffset by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1000f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(6000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            )
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundCanvas)
+    ) {
+        // Warm pale yellow ambient decorative orb
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(AccentCyan.copy(alpha = 0.1f), AccentPurple.copy(alpha = 0.1f), Color.Transparent),
-                        center = Offset(gradientOffset, gradientOffset),
-                        radius = 1200f
-                    )
-                )
+                .size(360.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 100.dp, y = (-80).dp)
+                .clip(CircleShape)
+                .background(BrandYellowSoft.copy(alpha = 0.5f))
         )
         
         Column(
@@ -56,58 +46,63 @@ fun OnboardingScreen(onFinish: (String) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // App Logo Card
             Box(
                 modifier = Modifier
-                    .width(180.dp)
-                    .height(80.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(SurfacePrimary)
-                    .border(1.5.dp, BrandLime.copy(alpha=0.6f), RoundedCornerShape(24.dp))
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .size(100.dp)
+                    .sunnyCardShadow(cornerRadius = 28.dp, blurRadius = 14.dp, offsetY = 4.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(SurfaceWhite)
+                    .border(1.5.dp, BorderSubtle, RoundedCornerShape(28.dp))
+                    .padding(18.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.kilukkam_logo),
                     contentDescription = "Kilukkam Logo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             
             Text(
                 text = "Welcome to\nKilukkam",
-                color = TextPrimary,
+                color = TextDark,
                 fontSize = 36.sp,
-                fontWeight = FontWeight.Black,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                lineHeight = 44.sp
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                lineHeight = 42.sp,
+                letterSpacing = (-0.5).sp
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
             
             Text(
-                text = "Let's personalize your experience. What should we call you?",
+                text = "Let's personalize your finance hub. What should we call you?",
                 color = TextSecondary,
-                fontSize = 16.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
             )
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = { Text("Your Name", color = TextSecondary) },
+                placeholder = { Text("Your Name", color = TextMuted) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BrandLime,
+                    focusedContainerColor = SurfaceWhite,
+                    unfocusedContainerColor = SurfaceWhite,
+                    focusedBorderColor = BrandYellowPrimary,
                     unfocusedBorderColor = BorderSubtle,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    cursorColor = BrandLime
+                    focusedTextColor = TextDark,
+                    unfocusedTextColor = TextDark,
+                    cursorColor = TextDark
                 ),
                 singleLine = true
             )
@@ -118,17 +113,20 @@ fun OnboardingScreen(onFinish: (String) -> Unit) {
                 onClick = { if (name.isNotBlank()) onFinish(name.trim()) },
                 enabled = name.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandLime,
-                    disabledContainerColor = BackgroundElevated
+                    containerColor = BrandYellowPrimary,
+                    disabledContainerColor = BackgroundMuted
                 ),
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().height(64.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .sunnyCardShadow(cornerRadius = 24.dp, blurRadius = 10.dp, offsetY = 3.dp)
             ) {
                 Text(
                     "Get Started",
-                    color = if (name.isNotBlank()) PureBlack else TextSecondary,
+                    color = if (name.isNotBlank()) TextOnYellow else TextMuted,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp
+                    fontSize = 17.sp
                 )
             }
         }

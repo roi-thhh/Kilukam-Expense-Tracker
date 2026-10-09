@@ -3,8 +3,10 @@ package com.example.kilukkam.ui
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -13,8 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -57,20 +57,16 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(BackgroundCanvas)
             .clickable { finishOnce() },
         contentAlignment = Alignment.Center
     ) {
-        // Subtle ambient neon aura glow in center
+        // Soft warm yellow ambient ring
         Box(
             modifier = Modifier
-                .size(280.dp)
-                .alpha(0.12f)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(BrandLime, AccentCyan.copy(alpha = 0.5f), Color.Transparent)
-                    )
-                )
+                .size(320.dp)
+                .clip(CircleShape)
+                .background(BrandYellowSoft.copy(alpha = 0.45f))
         )
 
         Column(
@@ -80,13 +76,15 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .scale(logoScale)
                 .alpha(logoAlpha)
         ) {
-            // Branded App Logo
+            // Branded App Logo in crisp card
             Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(SurfacePrimary)
-                    .padding(18.dp),
+                    .size(108.dp)
+                    .sunnyCardShadow(cornerRadius = 28.dp, blurRadius = 16.dp, offsetY = 6.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(SurfaceWhite)
+                    .border(1.5.dp, BorderSubtle, RoundedCornerShape(28.dp))
+                    .padding(20.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -99,21 +97,21 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // App Name
+            // App Name & Tagline
             Text(
                 text = "KILUKKAM",
-                color = TextPrimary,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Black,
+                color = TextDark,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 4.sp
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "EXPENSE TRACKER",
+                text = "SMART EXPENSE TRACKER",
                 color = TextSecondary,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
             )

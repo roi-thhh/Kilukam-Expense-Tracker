@@ -1,24 +1,27 @@
 package com.example.kilukkam.ui.main
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.kilukkam.data.DataRepository
-import com.example.kilukkam.theme.BrandLime
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kilukkam.data.DataRepository
+import com.example.kilukkam.theme.*
+import com.example.kilukkam.ui.sunnyCardShadow
 
 enum class Screen {
     Dashboard, Analytics, Settings
@@ -55,10 +58,13 @@ fun MainAppScaffold(
     var currentShowDialog by remember { mutableStateOf(showCategorizeDialog) }
 
     Scaffold(
+        containerColor = BackgroundCanvas,
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
+                containerColor = SurfaceWhite,
+                contentColor = TextDark,
+                tonalElevation = 0.dp,
+                modifier = Modifier.border(width = 1.dp, color = BorderSubtle)
             ) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Filled.Home, contentDescription = "Dashboard") },
@@ -66,9 +72,11 @@ fun MainAppScaffold(
                     selected = currentScreen == Screen.Dashboard,
                     onClick = { currentScreen = Screen.Dashboard },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = BrandLime,
-                        selectedTextColor = BrandLime,
-                        indicatorColor = BrandLime.copy(alpha = 0.2f)
+                        selectedIconColor = TextDark,
+                        selectedTextColor = TextDark,
+                        indicatorColor = BrandYellowPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
                     )
                 )
                 NavigationBarItem(
@@ -77,9 +85,11 @@ fun MainAppScaffold(
                     selected = currentScreen == Screen.Analytics,
                     onClick = { currentScreen = Screen.Analytics },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = BrandLime,
-                        selectedTextColor = BrandLime,
-                        indicatorColor = BrandLime.copy(alpha = 0.2f)
+                        selectedIconColor = TextDark,
+                        selectedTextColor = TextDark,
+                        indicatorColor = BrandYellowPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
                     )
                 )
             }
@@ -87,15 +97,17 @@ fun MainAppScaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showManualEntry = true },
-                containerColor = BrandLime,
-                contentColor = com.example.kilukkam.theme.PureBlack
+                containerColor = BrandYellowPrimary,
+                contentColor = TextOnYellow,
+                shape = RoundedCornerShape(22.dp),
+                modifier = Modifier.sunnyCardShadow(cornerRadius = 22.dp, blurRadius = 10.dp, offsetY = 3.dp)
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Expense")
             }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize().background(BackgroundCanvas)) {
             when (currentScreen) {
                 Screen.Dashboard -> {
                     MainScreen(

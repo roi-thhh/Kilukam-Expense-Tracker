@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kilukkam.data.Account
 import com.example.kilukkam.theme.*
+import com.example.kilukkam.ui.sunnyCardShadow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,15 +56,18 @@ fun ManualEntryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfacePrimary,
-        shape = RoundedCornerShape(32.dp),
-        modifier = Modifier.border(1.dp, BorderSubtle, RoundedCornerShape(32.dp)),
+        containerColor = SurfaceWhite,
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier
+            .sunnyCardShadow(cornerRadius = 28.dp, blurRadius = 16.dp, offsetY = 6.dp)
+            .border(1.dp, BorderSubtle, RoundedCornerShape(28.dp)),
         title = { 
             Text(
-                if (isIncome) "Add Income" else "Add Expense", 
-                color = TextPrimary,
+                text = if (isIncome) "Add Income" else "Add Expense", 
+                color = TextDark,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 22.sp
+                fontSize = 22.sp,
+                letterSpacing = (-0.5).sp
             ) 
         },
         text = {
@@ -75,14 +79,16 @@ fun ManualEntryDialog(
                     label = { Text("Amount (₹)", color = TextSecondary) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = if (isIncome) AccentCyan else BrandLime,
+                        focusedContainerColor = SurfaceWhite,
+                        unfocusedContainerColor = BackgroundMuted.copy(alpha = 0.5f),
+                        focusedBorderColor = if (isIncome) AccentIncome else BrandYellowPrimary,
                         unfocusedBorderColor = BorderSubtle,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        cursorColor = BrandLime
+                        focusedTextColor = TextDark,
+                        unfocusedTextColor = TextDark,
+                        cursorColor = TextDark
                     ),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     singleLine = true
                 )
 
@@ -92,22 +98,24 @@ fun ManualEntryDialog(
                         value = merchantText,
                         onValueChange = { merchantText = it },
                         label = { Text("Merchant / Store (Optional)", color = TextSecondary) },
-                        placeholder = { Text("e.g. Swiggy, Uber, Amazon", color = TextSecondary.copy(alpha = 0.5f)) },
+                        placeholder = { Text("e.g. Swiggy, Uber, Amazon", color = TextMuted) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrandLime,
+                            focusedContainerColor = SurfaceWhite,
+                            unfocusedContainerColor = BackgroundMuted.copy(alpha = 0.5f),
+                            focusedBorderColor = BrandYellowPrimary,
                             unfocusedBorderColor = BorderSubtle,
-                            focusedTextColor = TextPrimary,
-                            unfocusedTextColor = TextPrimary,
-                            cursorColor = BrandLime
+                            focusedTextColor = TextDark,
+                            unfocusedTextColor = TextDark,
+                            cursorColor = TextDark
                         ),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(18.dp),
                         singleLine = true
                     )
                 }
 
                 // Account Selector
-                Text("Paid via Account", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+                Text("Account / Card", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 6.dp))
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -116,23 +124,23 @@ fun ManualEntryDialog(
                         val isSelected = selectedAccount.id == acc.id || selectedAccount.name == acc.name
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isSelected) AccentCyan.copy(alpha = 0.2f) else BackgroundElevated)
-                                .border(1.dp, if (isSelected) AccentCyan else Color.Transparent, RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (isSelected) BrandYellowPrimary else BackgroundMuted)
+                                .border(1.dp, if (isSelected) BorderYellow else BorderSubtle, RoundedCornerShape(14.dp))
                                 .clickable { selectedAccount = acc }
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
                                 acc.name, 
-                                color = if (isSelected) AccentCyan else TextPrimary, 
-                                fontWeight = FontWeight.Bold, 
+                                color = TextDark, 
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium, 
                                 fontSize = 12.sp
                             )
                         }
                     }
                 }
 
-                Text("Category", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
+                Text("Category", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 6.dp))
                 
                 // Horizontal scrolling category chips
                 LazyRow(
@@ -141,18 +149,19 @@ fun ManualEntryDialog(
                 ) {
                     items(displayCategories) { category ->
                         val isSelected = selectedCategory == category
-                        val bgColor by animateColorAsState(if (isSelected) (if (isIncome) AccentCyan else BrandLime) else BackgroundElevated)
-                        val textColor by animateColorAsState(if (isSelected) PureBlack else TextPrimary)
+                        val bgColor by animateColorAsState(if (isSelected) (if (isIncome) AccentIncome else BrandYellowPrimary) else BackgroundMuted)
+                        val textColor by animateColorAsState(if (isSelected) (if (isIncome) SurfaceWhite else TextOnYellow) else TextDark)
                         
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(bgColor)
+                                .border(1.dp, if (isSelected) Color.Transparent else BorderSubtle, CircleShape)
                                 .clickable { 
                                     selectedCategory = category 
                                     showNewCategoryInput = false
                                 }
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                                .padding(horizontal = 16.dp, vertical = 9.dp)
                         ) {
                             Text(category, color = textColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
@@ -162,14 +171,14 @@ fun ManualEntryDialog(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(if (showNewCategoryInput) AccentCyan else BackgroundElevated)
+                                .background(if (showNewCategoryInput) BrandYellowPrimary else BrandYellowSoft)
                                 .clickable { 
                                     showNewCategoryInput = true
                                     selectedCategory = ""
                                 }
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                                .padding(horizontal = 14.dp, vertical = 9.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Add", tint = if (showNewCategoryInput) PureBlack else TextPrimary)
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = TextDark)
                         }
                     }
                 }
@@ -186,11 +195,11 @@ fun ManualEntryDialog(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = AccentCyan,
+                                focusedBorderColor = BrandYellowPrimary,
                                 unfocusedBorderColor = BorderSubtle,
-                                focusedTextColor = TextPrimary,
-                                unfocusedTextColor = TextPrimary,
-                                cursorColor = AccentCyan
+                                focusedTextColor = TextDark,
+                                unfocusedTextColor = TextDark,
+                                cursorColor = TextDark
                             ),
                             singleLine = true
                         )
@@ -205,12 +214,12 @@ fun ManualEntryDialog(
                                     showNewCategoryInput = false
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentCyan),
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandYellowPrimary),
                             shape = CircleShape,
-                            modifier = Modifier.size(50.dp),
+                            modifier = Modifier.size(48.dp),
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Save Custom", tint = PureBlack)
+                            Icon(Icons.Default.Add, contentDescription = "Save Custom", tint = TextDark)
                         }
                     }
                 }
@@ -235,15 +244,18 @@ fun ManualEntryDialog(
                 },
                 enabled = selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isIncome) AccentCyan else BrandLime,
-                    disabledContainerColor = BackgroundElevated
+                    containerColor = if (isIncome) AccentIncome else BrandYellowPrimary,
+                    disabledContainerColor = BackgroundMuted
                 ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .sunnyCardShadow(cornerRadius = 20.dp, blurRadius = 8.dp, offsetY = 2.dp)
             ) {
                 Text(
-                    "Confirm Entry", 
-                    color = if (selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null) PureBlack else TextSecondary, 
+                    text = "Confirm Entry", 
+                    color = if (selectedCategory.isNotBlank() && amountText.toDoubleOrNull() != null) (if (isIncome) SurfaceWhite else TextOnYellow) else TextMuted, 
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp
                 )
@@ -251,7 +263,7 @@ fun ManualEntryDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = TextSecondary, fontWeight = FontWeight.SemiBold)
             }
         }
     )
