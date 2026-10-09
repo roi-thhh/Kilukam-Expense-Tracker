@@ -300,33 +300,36 @@ fun MainScreen(
             }
 
             // Category Budgets Live Summary Card
-            if (state.categoryBudgets.isNotEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 24.dp)
-                            .sunnyCardShadow(cornerRadius = 24.dp, blurRadius = 10.dp, offsetY = 3.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(SurfaceWhite)
-                            .border(1.dp, BorderSubtle, RoundedCornerShape(24.dp))
-                            .padding(18.dp)
-                    ) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("Monthly Category Limits", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
-                                Text(
-                                    "Adjust", 
-                                    color = TextDark, 
-                                    fontSize = 12.sp, 
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.clickable { showBudgetDialog = true }
-                                )
-                            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                        .sunnyCardShadow(cornerRadius = 24.dp, blurRadius = 10.dp, offsetY = 3.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(SurfaceWhite)
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(24.dp))
+                        .padding(18.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Monthly Category Limits", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            Text(
+                                if (state.categoryBudgets.isEmpty()) "+ Set Limits" else "Manage", 
+                                color = TextDark, 
+                                fontSize = 12.sp, 
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showBudgetDialog = true }
+                            )
+                        }
+                        if (state.categoryBudgets.isEmpty()) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text("No category limits configured yet. Tap above to add limits.", color = TextSecondary, fontSize = 13.sp)
+                        } else {
                             Spacer(modifier = Modifier.height(14.dp))
 
                             state.categoryBudgets.forEach { (cat, limit) ->
@@ -574,8 +577,14 @@ fun MainScreen(
                 currentBudgets = state.categoryBudgets,
                 categories = state.categories,
                 onDismiss = { showBudgetDialog = false },
-                onSave = { cat, amt ->
+                onSaveBudget = { cat, amt ->
                     viewModel.setCategoryBudget(cat, amt)
+                },
+                onAddCategory = { cat, budget ->
+                    viewModel.addCategory(cat, budget)
+                },
+                onDeleteCategory = { cat ->
+                    viewModel.deleteCategory(cat)
                 }
             )
         }
@@ -1186,76 +1195,337 @@ fun DepositVaultDialog(
     )
 }
 
-// Dialog: Category Budget Editor
+// Dialog: Category Limits & Category Manager
 @Composable
 fun CategoryBudgetDialog(
     currentBudgets: Map<String, Double>,
     categories: List<String>,
     onDismiss: () -> Unit,
-    onSave: (category: String, amount: Double) -> Unit
+    onSaveBudget: (category: String, amount: Double) -> Unit,
+    onAddCategory: (category: String, budget: Double?) -> Unit,
+    onDeleteCategory: (category: String) -> Unit
 ) {
-    val displayCategories = if (categories.isEmpty()) listOf("Food & Dining", "Shopping", "Transport", "Bills & Utilities") else categories
-    var selectedCat by remember { mutableStateOf(displayCategories.first()) }
-    var amountText by remember { mutableStateOf(currentBudgets[selectedCat]?.toInt()?.toString() ?: "5000") }
+    val allCategories = (categories + currentBudgets.keys).distinct().filter { it.isNotBlank() }
+    
+    var isAddingCategory by remember { mutableStateOf(false) }
+    var newCategoryName by remember { mutableStateOf("") }
+    var newCategoryBudget by remember { mutableStateOf("5000") }
+    var editingCategory by remember { mutableStateOf<String?>(null) }
+    var editAmountText by remember { mutableStateOf("") }
+    var categoryToDelete by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceWhite,
         shape = RoundedCornerShape(28.dp),
-        title = { Text("Set Category Budget", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text("Category Limits", color = TextDark, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                    Text("Set monthly limits, add or delete categories", color = TextSecondary, fontSize = 12.sp)
+                }
+                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = TextSecondary, modifier = Modifier.size(20.dp))
+                }
+            }
+        },
         text = {
-            Column {
-                Text("Select Category", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp))
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(displayCategories) { cat ->
-                        val isSelected = selectedCat == cat
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(if (isSelected) BrandYellowPrimary else BackgroundMuted)
-                                .clickable {
-                                    selectedCat = cat
-                                    amountText = currentBudgets[cat]?.toInt()?.toString() ?: "5000"
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // "+ Add New Category" button or form
+                if (!isAddingCategory) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(BrandYellowPrimary)
+                            .clickable { isAddingCategory = true }
+                            .padding(vertical = 12.dp, horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = TextOnYellow, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Add New Category", color = TextOnYellow, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+                } else {
+                    // Expandable Add Category Form Card
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(BackgroundMuted)
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(18.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            Text("Create New Category", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = newCategoryName,
+                                onValueChange = { newCategoryName = it },
+                                label = { Text("Category Name (e.g. Subscriptions, Gym)", color = TextSecondary, fontSize = 12.sp) },
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = BrandYellowPrimary,
+                                    unfocusedBorderColor = BorderSubtle,
+                                    focusedTextColor = TextDark,
+                                    unfocusedTextColor = TextDark,
+                                    cursorColor = TextDark,
+                                    focusedContainerColor = SurfaceWhite,
+                                    unfocusedContainerColor = SurfaceWhite
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = newCategoryBudget,
+                                onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) newCategoryBudget = it },
+                                label = { Text("Monthly Limit (₹) - Optional", color = TextSecondary, fontSize = 12.sp) },
+                                singleLine = true,
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = BrandYellowPrimary,
+                                    unfocusedBorderColor = BorderSubtle,
+                                    focusedTextColor = TextDark,
+                                    unfocusedTextColor = TextDark,
+                                    cursorColor = TextDark,
+                                    focusedContainerColor = SurfaceWhite,
+                                    unfocusedContainerColor = SurfaceWhite
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(onClick = { isAddingCategory = false }) {
+                                    Text("Cancel", color = TextSecondary, fontSize = 12.sp)
                                 }
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Text(cat, color = if (isSelected) TextOnYellow else TextDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Button(
+                                    onClick = {
+                                        val trimmed = newCategoryName.trim()
+                                        if (trimmed.isNotBlank()) {
+                                            val budget = newCategoryBudget.toDoubleOrNull()
+                                            onAddCategory(trimmed, budget)
+                                            newCategoryName = ""
+                                            newCategoryBudget = "5000"
+                                            isAddingCategory = false
+                                        }
+                                    },
+                                    enabled = newCategoryName.isNotBlank(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = BrandYellowPrimary),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Add", color = TextOnYellow, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = amountText,
-                    onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) amountText = it },
-                    label = { Text("Monthly Budget for $selectedCat (₹)", color = TextSecondary) },
-                    singleLine = true,
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BrandYellowPrimary, unfocusedBorderColor = BorderSubtle, cursorColor = TextDark),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Scrollable Categories List
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 340.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (allCategories.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No categories yet. Tap Add above to create one.", color = TextSecondary, fontSize = 13.sp)
+                            }
+                        }
+                    } else {
+                        items(allCategories) { cat ->
+                            val limit = currentBudgets[cat]
+                            val catLower = cat.lowercase()
+                            val categoryIcon = when {
+                                catLower.contains("food") || catLower.contains("dining") || catLower.contains("burger") || catLower.contains("pizza") || catLower.contains("cafe") -> Icons.Default.Restaurant
+                                catLower.contains("transport") || catLower.contains("fuel") || catLower.contains("travel") || catLower.contains("cab") || catLower.contains("uber") -> Icons.Default.DirectionsCar
+                                catLower.contains("shop") || catLower.contains("grocer") || catLower.contains("mart") || catLower.contains("amazon") -> Icons.Default.ShoppingCart
+                                catLower.contains("bill") || catLower.contains("electric") || catLower.contains("wifi") || catLower.contains("recharge") -> Icons.AutoMirrored.Filled.ReceiptLong
+                                catLower.contains("tech") || catLower.contains("phone") || catLower.contains("gadget") -> Icons.Default.Devices
+                                catLower.contains("movie") || catLower.contains("entertain") || catLower.contains("netflix") || catLower.contains("game") -> Icons.Default.Movie
+                                catLower.contains("health") || catLower.contains("medic") || catLower.contains("gym") -> Icons.Default.LocalHospital
+                                catLower.contains("salary") || catLower.contains("income") || catLower.contains("bank") -> Icons.Default.AccountBalance
+                                else -> Icons.Default.Payments
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(BackgroundMuted)
+                                    .border(1.dp, BorderSubtle, RoundedCornerShape(16.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Category Icon Box
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(BrandYellowPrimary.copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(categoryIcon, contentDescription = cat, tint = TextDark, modifier = Modifier.size(18.dp))
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        // Category Name & Current Limit
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(cat, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                            Text(
+                                                if (limit != null && limit > 0) "Limit: ₹%.0f / mo".format(limit) else "No limit set",
+                                                color = if (limit != null && limit > 0) TextSecondary else TextMuted,
+                                                fontSize = 11.sp
+                                            )
+                                        }
+
+                                        // Edit Limit Button
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(SurfaceWhite)
+                                                .border(1.dp, BorderSubtle, CircleShape)
+                                                .clickable {
+                                                    if (editingCategory == cat) {
+                                                        editingCategory = null
+                                                    } else {
+                                                        editingCategory = cat
+                                                        editAmountText = currentBudgets[cat]?.toInt()?.toString() ?: "5000"
+                                                    }
+                                                },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = "Edit Limit", tint = TextDark, modifier = Modifier.size(15.dp))
+                                        }
+
+                                        Spacer(modifier = Modifier.width(6.dp))
+
+                                        // Delete Category Button
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(AccentExpense.copy(alpha = 0.12f))
+                                                .clickable { categoryToDelete = cat },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(Icons.Default.DeleteOutline, contentDescription = "Delete Category", tint = AccentExpense, modifier = Modifier.size(16.dp))
+                                        }
+                                    }
+
+                                    // Inline Edit Field when expanding edit mode
+                                    if (editingCategory == cat) {
+                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            OutlinedTextField(
+                                                value = editAmountText,
+                                                onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) editAmountText = it },
+                                                label = { Text("Monthly Limit (₹)", fontSize = 11.sp) },
+                                                singleLine = true,
+                                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    focusedBorderColor = BrandYellowPrimary,
+                                                    unfocusedBorderColor = BorderSubtle,
+                                                    focusedContainerColor = SurfaceWhite,
+                                                    unfocusedContainerColor = SurfaceWhite
+                                                ),
+                                                modifier = Modifier.weight(1f),
+                                                shape = RoundedCornerShape(12.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Button(
+                                                onClick = {
+                                                    val amt = editAmountText.toDoubleOrNull() ?: 0.0
+                                                    if (amt > 0) {
+                                                        onSaveBudget(cat, amt)
+                                                        editingCategory = null
+                                                    }
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = BrandYellowPrimary),
+                                                shape = RoundedCornerShape(12.dp)
+                                            ) {
+                                                Text("Save", color = TextOnYellow, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
-            val amt = amountText.toDoubleOrNull() ?: 0.0
             Button(
-                onClick = {
-                    if (amt > 0) {
-                        onSave(selectedCat, amt)
-                        onDismiss()
-                    }
-                },
-                enabled = amt > 0,
+                onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = BrandYellowPrimary),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
-                Text("Save Budget", color = TextOnYellow, fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Close", color = TextSecondary)
+                Text("Done", color = TextOnYellow, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     )
+
+    // Delete Confirmation Sub-Dialog
+    if (categoryToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { categoryToDelete = null },
+            containerColor = SurfaceWhite,
+            shape = RoundedCornerShape(24.dp),
+            title = { Text("Delete Category?", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+            text = {
+                Text(
+                    "Are you sure you want to delete '$categoryToDelete'? Its monthly spending limit will also be removed.",
+                    color = TextSecondary,
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteCategory(categoryToDelete!!)
+                        categoryToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentExpense),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Delete", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { categoryToDelete = null }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            }
+        )
+    }
 }

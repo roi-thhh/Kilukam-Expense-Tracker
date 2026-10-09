@@ -55,15 +55,27 @@ class DataRepository(context: Context) {
     }
     
     fun defaultCategories(): List<String> {
-        return listOf("Food & Dining", "Transport", "Shopping", "Bills & Utilities", "Tech & Gear", "Entertainment", "Health & Medical")
+        return listOf("Food & Dining", "Shopping", "Transport", "Bills & Utilities", "Tech & Gear", "Entertainment", "Health & Medical")
     }
     
-    fun addCategory(category: String) {
+    fun addCategory(category: String, defaultBudget: Double? = null) {
+        val trimmed = category.trim()
+        if (trimmed.isBlank()) return
         val categories = getCategories().toMutableList()
-        if (!categories.contains(category)) {
-            categories.add(category)
+        if (!categories.any { it.equals(trimmed, ignoreCase = true) }) {
+            categories.add(trimmed)
             prefs.edit().putString("categories", json.encodeToString(categories)).apply()
         }
+        if (defaultBudget != null && defaultBudget > 0) {
+            setCategoryBudget(trimmed, defaultBudget)
+        }
+    }
+
+    fun deleteCategory(category: String) {
+        val categories = getCategories().toMutableList()
+        categories.removeAll { it.equals(category, ignoreCase = true) }
+        prefs.edit().putString("categories", json.encodeToString(categories)).apply()
+        deleteCategoryBudget(category)
     }
     
     // --- Incomes ---
@@ -213,7 +225,10 @@ class DataRepository(context: Context) {
             "Food & Dining" to 8000.0,
             "Shopping" to 6000.0,
             "Transport" to 3500.0,
-            "Bills & Utilities" to 5000.0
+            "Bills & Utilities" to 5000.0,
+            "Tech & Gear" to 4000.0,
+            "Entertainment" to 3000.0,
+            "Health & Medical" to 3000.0
         )
     }
 
@@ -221,6 +236,15 @@ class DataRepository(context: Context) {
         val map = getCategoryBudgets().toMutableMap()
         map[category] = amount
         prefs.edit().putString("category_budgets", json.encodeToString(map)).apply()
+    }
+
+    fun deleteCategoryBudget(category: String) {
+        val map = getCategoryBudgets().toMutableMap()
+        val keyToRemove = map.keys.firstOrNull { it.equals(category, ignoreCase = true) }
+        if (keyToRemove != null) {
+            map.remove(keyToRemove)
+            prefs.edit().putString("category_budgets", json.encodeToString(map)).apply()
+        }
     }
 
     // --- Target Vaults (Goal-Based Savings) ---

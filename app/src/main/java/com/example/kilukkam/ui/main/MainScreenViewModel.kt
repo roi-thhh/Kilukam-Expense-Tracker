@@ -71,8 +71,18 @@ class MainScreenViewModel(private val repository: DataRepository) : ViewModel() 
         loadData()
     }
 
-    fun addCategory(category: String) {
-        repository.addCategory(category)
+    fun addCategory(category: String, defaultBudget: Double? = null) {
+        repository.addCategory(category, defaultBudget)
+        loadData()
+    }
+
+    fun deleteCategory(category: String) {
+        repository.deleteCategory(category)
+        loadData()
+    }
+
+    fun deleteCategoryBudget(category: String) {
+        repository.deleteCategoryBudget(category)
         loadData()
     }
 
