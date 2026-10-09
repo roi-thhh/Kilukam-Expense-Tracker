@@ -52,7 +52,7 @@ fun OnboardingScreen(onFinish: (String) -> Unit) {
                     .size(100.dp)
                     .sunnyCardShadow(cornerRadius = 28.dp, blurRadius = 14.dp, offsetY = 4.dp)
                     .clip(RoundedCornerShape(28.dp))
-                    .background(SurfaceWhite)
+                    .background(BrandYellowPrimary)
                     .border(1.5.dp, BorderSubtle, RoundedCornerShape(28.dp))
                     .padding(18.dp),
                 contentAlignment = Alignment.Center

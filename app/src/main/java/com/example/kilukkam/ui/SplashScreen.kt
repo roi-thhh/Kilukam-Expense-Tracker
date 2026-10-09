@@ -76,13 +76,13 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 .scale(logoScale)
                 .alpha(logoAlpha)
         ) {
-            // Branded App Logo in crisp card
+            // Branded App Logo in signature Sunny Yellow card
             Box(
                 modifier = Modifier
                     .size(108.dp)
                     .sunnyCardShadow(cornerRadius = 28.dp, blurRadius = 16.dp, offsetY = 6.dp)
                     .clip(RoundedCornerShape(28.dp))
-                    .background(SurfaceWhite)
+                    .background(BrandYellowPrimary)
                     .border(1.5.dp, BorderSubtle, RoundedCornerShape(28.dp))
                     .padding(20.dp),
                 contentAlignment = Alignment.Center

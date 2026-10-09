@@ -172,7 +172,7 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             HeroQuickAction(icon = Icons.AutoMirrored.Filled.Send, label = "Send") {
-                                com.example.kilukkam.utils.ShareUtils.shareAnalyticsAsImage(context, totalExpense)
+                                com.example.kilukkam.utils.ShareUtils.shareAnalyticsAsImage(context, state.expenses, totalExpense)
                             }
                             HeroQuickAction(icon = Icons.AutoMirrored.Filled.CallMade, label = "Receive") { 
                                 showReceiveDialog = true 

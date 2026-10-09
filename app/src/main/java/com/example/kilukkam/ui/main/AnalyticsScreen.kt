@@ -83,7 +83,7 @@ fun AnalyticsScreen(expenses: List<Expense>) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(BrandYellowPrimary)
-                            .clickable { ShareUtils.shareAnalyticsAsImage(context, totalExpense) }
+                            .clickable { ShareUtils.shareAnalyticsAsImage(context, expenses, totalExpense) }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
