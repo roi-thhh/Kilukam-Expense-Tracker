@@ -64,6 +64,18 @@ class SmsReceiver : BroadcastReceiver() {
                             .setAutoCancel(true)
 
                         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            if (notificationManager.getNotificationChannel("TRANSACTION_CHANNEL") == null) {
+                                val channel = android.app.NotificationChannel(
+                                    "TRANSACTION_CHANNEL",
+                                    "Transaction Alerts",
+                                    NotificationManager.IMPORTANCE_HIGH
+                                ).apply {
+                                    description = "Notifications for new transactions to categorize"
+                                }
+                                notificationManager.createNotificationChannel(channel)
+                            }
+                        }
                         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
                     }
                 }
