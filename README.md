@@ -9,14 +9,14 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Material 3](https://img.shields.io/badge/Design-Sunny_Fintech_M3-FFD928?style=for-the-badge&logo=google&logoColor=black)](https://m3.material.io)
-[![Release](https://img.shields.io/badge/Version-v4.2.0-FFD928?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
+[![Release](https://img.shields.io/badge/Version-v4.3.0-FFD928?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-27865A?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, multi-account card management, goal vaults, categorized analytics graph sharing, and bespoke Sunny Fintech UI.</strong>
+  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, multi-account card management, goal vaults, in-place expense editing & deletion, categorized analytics graph sharing, and bespoke Sunny Fintech UI.</strong>
 </p>
 
-[Download Latest APK (v4.2.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.2.0) • [Features](#-key-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started)
+[Download Latest APK (v4.3.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.3.0) • [Features](#-key-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started)
 
 ---
 
@@ -47,6 +47,7 @@
 | ⚡ **Zero-Delay Transaction Detection** | Real-time `BroadcastReceiver` parses incoming banking SMS with sub-second latency and prompts instant categorization. |
 | 📈 **Interactive Spending Flow** | Switch seamlessly between **1-Week**, **1-Month**, and **1-Year** dynamic trendlines with reactive bezier fills and spending velocity metrics. |
 | 🍩 **Sunny Donut Analytics** | Crisp segmented donut chart with centered financial summary and category breakdown meters. |
+| ✏️ **In-Place Expense Editing & Deletion** | Long-press or tap any expense in the Recent Activity list to modify amounts, adjust or clear merchant tags, switch accounts/cards, or permanently remove mistyped transactions with real-time balance recalibration. |
 | 📤 **Categorized Graph Sharing** | Renders an authentic high-resolution segmented donut chart, category breakdown list, and key metrics into a branded Sunny Fintech report card shareable to WhatsApp, Telegram, and social media. |
 
 ---
@@ -149,7 +150,8 @@ Kilukkam requests the following permissions purely for on-device processing:
 
 | Release | Version | Status | Download |
 | :--- | :--- | :--- | :--- |
-| **v4.2.0** | `4.2.0` (Build 6) | **Latest Stable (Sunny Fintech)** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.2.0) |
+| **v4.3.0** | `4.3.0` (Build 7) | **Latest Stable (Sunny Fintech)** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.3.0) |
+| **v4.2.0** | `4.2.0` (Build 6) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.2.0) |
 | **v4.0.0** | `4.0.0` (Build 5) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.0.0) |
 | **v3.1.0** | `3.1.0` (Build 4) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.1.0) |
 | **v3.0.0** | `3.0.0` (Build 3) | Deprecated | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.0.0) |

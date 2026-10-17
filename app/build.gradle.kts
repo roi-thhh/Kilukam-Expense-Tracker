@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.kilukkam"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "4.0.0"
+        versionCode = 7
+        versionName = "4.3.0"
     }
 
     buildTypes {
