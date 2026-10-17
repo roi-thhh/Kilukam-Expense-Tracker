@@ -3,9 +3,11 @@ package com.example.kilukkam.ui.main
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -67,6 +69,9 @@ fun MainScreen(
     var showDepositVaultDialog by remember { mutableStateOf(false) }
     var selectedVaultForDeposit by remember { mutableStateOf<TargetVault?>(null) }
     var showBudgetDialog by remember { mutableStateOf(false) }
+    var selectedExpenseForActions by remember { mutableStateOf<Expense?>(null) }
+    var selectedExpenseForEdit by remember { mutableStateOf<Expense?>(null) }
+    var selectedExpenseForDelete by remember { mutableStateOf<Expense?>(null) }
 
     Box(modifier = modifier.fillMaxSize().background(BackgroundCanvas)) {
         // Filter expenses if an account is selected
@@ -476,7 +481,7 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Recent Activity", color = TextDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("${displayedExpenses.size} items", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text("${displayedExpenses.size} items • Hold to edit", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -496,8 +501,13 @@ fun MainScreen(
                     }
                 }
             } else {
-                itemsIndexed(displayedExpenses.take(15)) { index, expense ->
-                    ExpenseItem(expense = expense, index = index)
+                itemsIndexed(displayedExpenses) { index, expense ->
+                    ExpenseItem(
+                        expense = expense, 
+                        index = index,
+                        onClick = { selectedExpenseForActions = expense },
+                        onLongClick = { selectedExpenseForActions = expense }
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -585,6 +595,54 @@ fun MainScreen(
                 },
                 onDeleteCategory = { cat ->
                     viewModel.deleteCategory(cat)
+                }
+            )
+        }
+
+        if (selectedExpenseForActions != null) {
+            ExpenseActionDialog(
+                expense = selectedExpenseForActions!!,
+                onDismiss = { selectedExpenseForActions = null },
+                onEditClick = {
+                    val exp = selectedExpenseForActions!!
+                    selectedExpenseForActions = null
+                    selectedExpenseForEdit = exp
+                },
+                onDeleteClick = {
+                    val exp = selectedExpenseForActions!!
+                    selectedExpenseForActions = null
+                    selectedExpenseForDelete = exp
+                }
+            )
+        }
+
+        if (selectedExpenseForEdit != null) {
+            EditExpenseDialog(
+                expense = selectedExpenseForEdit!!,
+                categories = state.categories,
+                accounts = state.accounts,
+                onDismiss = { selectedExpenseForEdit = null },
+                onSave = { updated ->
+                    viewModel.updateExpense(updated)
+                    selectedExpenseForEdit = null
+                },
+                onDelete = { id ->
+                    viewModel.deleteExpense(id)
+                    selectedExpenseForEdit = null
+                },
+                onAddCategory = { cat ->
+                    viewModel.addCategory(cat)
+                }
+            )
+        }
+
+        if (selectedExpenseForDelete != null) {
+            DeleteExpenseConfirmationDialog(
+                expense = selectedExpenseForDelete!!,
+                onDismiss = { selectedExpenseForDelete = null },
+                onConfirm = {
+                    viewModel.deleteExpense(selectedExpenseForDelete!!.id)
+                    selectedExpenseForDelete = null
                 }
             )
         }
@@ -712,8 +770,14 @@ fun SummaryCard(title: String, amount: String, color: Color, modifier: Modifier 
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ExpenseItem(expense: Expense, index: Int) {
+fun ExpenseItem(
+    expense: Expense, 
+    index: Int,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
+) {
     val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
     val dateString = dateFormat.format(Date(expense.timestamp))
     
@@ -746,6 +810,10 @@ fun ExpenseItem(expense: Expense, index: Int) {
             .clip(RoundedCornerShape(20.dp))
             .background(SurfaceWhite)
             .border(1.dp, BorderSubtle, RoundedCornerShape(20.dp))
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

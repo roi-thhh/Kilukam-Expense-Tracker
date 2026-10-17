@@ -139,6 +139,39 @@ class DataRepository(context: Context) {
         }
     }
 
+    fun updateExpense(updatedExpense: Expense) {
+        val expenses = getExpenses().toMutableList()
+        val index = expenses.indexOfFirst { it.id == updatedExpense.id }
+        if (index != -1) {
+            expenses[index] = updatedExpense
+            prefs.edit().putString("expenses", json.encodeToString(expenses)).apply()
+            if (updatedExpense.merchant != null && updatedExpense.merchant.isNotBlank()) {
+                saveMerchantCategory(updatedExpense.merchant, updatedExpense.category)
+            }
+        }
+    }
+
+    fun deleteExpense(id: String) {
+        val expenses = getExpenses().toMutableList()
+        expenses.removeAll { it.id == id }
+        prefs.edit().putString("expenses", json.encodeToString(expenses)).apply()
+    }
+
+    fun updateIncome(updatedIncome: Expense) {
+        val incomes = getIncomes().toMutableList()
+        val index = incomes.indexOfFirst { it.id == updatedIncome.id }
+        if (index != -1) {
+            incomes[index] = updatedIncome
+            prefs.edit().putString("incomes", json.encodeToString(incomes)).apply()
+        }
+    }
+
+    fun deleteIncome(id: String) {
+        val incomes = getIncomes().toMutableList()
+        incomes.removeAll { it.id == id }
+        prefs.edit().putString("incomes", json.encodeToString(incomes)).apply()
+    }
+
     // --- Intelligent Merchant Memory (Habit Learning) ---
     fun getMerchantCategory(merchant: String): String? {
         val mapJson = prefs.getString("merchant_categories", null) ?: return null

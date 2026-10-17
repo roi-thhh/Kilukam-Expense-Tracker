@@ -61,6 +61,27 @@ class MainScreenViewModel(private val repository: DataRepository) : ViewModel() 
         loadData()
     }
     
+    fun updateExpense(expense: Expense) {
+        repository.ensureAccountExists(expense.account, expense.accountType)
+        repository.updateExpense(expense)
+        loadData()
+    }
+
+    fun deleteExpense(expenseId: String) {
+        repository.deleteExpense(expenseId)
+        loadData()
+    }
+
+    fun updateIncome(income: Expense) {
+        repository.updateIncome(income)
+        loadData()
+    }
+
+    fun deleteIncome(incomeId: String) {
+        repository.deleteIncome(incomeId)
+        loadData()
+    }
+    
     fun addIncome(amount: Double, category: String, account: String = "Primary Account") {
         repository.addIncome(amount, category, account)
         loadData()
