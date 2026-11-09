@@ -9,15 +9,15 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Material 3](https://img.shields.io/badge/Design-Sunny_Fintech_M3-FFD928?style=for-the-badge&logo=google&logoColor=black)](https://m3.material.io)
-[![Release](https://img.shields.io/badge/Version-v4.3.0-FFD928?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
+[![Release](https://img.shields.io/badge/Version-v4.4.0-FFD928?style=for-the-badge)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases)
 [![Security: Semgrep](https://img.shields.io/badge/Security-Semgrep_Verified-00C48C?style=for-the-badge&logo=semgrep&logoColor=white)](https://semgrep.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-27865A?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, multi-account card management, goal vaults, in-place expense editing & deletion, categorized analytics graph sharing, and bespoke Sunny Fintech UI.</strong>
+  <strong>Effortless, intelligent expense tracking with zero manual entry, real-time banking SMS detection, monthly cycle auto-partitioning, multi-horizon analytics (Monthly, Yearly, All Time), friends ledger & dues tracker, and bespoke Sunny Fintech UI.</strong>
 </p>
 
-[Download Latest APK (v4.3.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.3.0) • [Key Features](#-key-features) • [Expense Editing & Deletion](#-in-place-expense-editing--deletion) • [Architecture](#-architecture--tech-stack) • [Security & Audit](#-security--production-readiness) • [Releases](#-releases)
+[Download Latest APK (v4.4.0)](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.4.0) • [Key Features](#-key-features) • [Monthly Organization & Analytics](#-monthly-organization--multi-horizon-analytics) • [Friends & Dues](#-friends--dues-tracker) • [Architecture](#-architecture--tech-stack) • [Releases](#-releases)
 
 ---
 
@@ -185,7 +185,8 @@ Kilukkam requests the following permissions purely for on-device processing:
 
 | Release | Version | Status | Download |
 | :--- | :--- | :--- | :--- |
-| **v4.3.0** | `4.3.0` (Build 7) | **Latest Stable (Sunny Fintech)** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.3.0) |
+| **v4.4.0** | `4.4.0` (Build 8) | **Latest Stable (Sunny Fintech)** | [Download APK](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.4.0) |
+| **v4.3.0** | `4.3.0` (Build 7) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.3.0) |
 | **v4.2.0** | `4.2.0` (Build 6) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.2.0) |
 | **v4.0.0** | `4.0.0` (Build 5) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v4.0.0) |
 | **v3.1.0** | `3.1.0` (Build 4) | Stable | [View Release](https://github.com/roi-thhh/Kilukam-Expense-Tracker/releases/tag/v3.1.0) |

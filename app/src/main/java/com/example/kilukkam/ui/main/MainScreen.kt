@@ -39,6 +39,8 @@ import com.example.kilukkam.data.Expense
 import com.example.kilukkam.data.TargetVault
 import com.example.kilukkam.theme.*
 import com.example.kilukkam.ui.sunnyCardShadow
+import com.example.kilukkam.utils.DateUtils
+import com.example.kilukkam.utils.MonthYear
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -74,16 +76,22 @@ fun MainScreen(
     var selectedExpenseForDelete by remember { mutableStateOf<Expense?>(null) }
 
     Box(modifier = modifier.fillMaxSize().background(BackgroundCanvas)) {
+        // Filter expenses for selected month
+        val currentMonthExpenses = state.currentMonthExpenses
+        val currentMonthIncomes = state.currentMonthIncomes
+
         // Filter expenses if an account is selected
         val displayedExpenses = if (state.selectedAccountFilter != null) {
-            state.expenses.filter { it.account.equals(state.selectedAccountFilter, ignoreCase = true) }
+            currentMonthExpenses.filter { it.account.equals(state.selectedAccountFilter, ignoreCase = true) }
         } else {
-            state.expenses
+            currentMonthExpenses
         }
 
-        val totalExpense = state.expenses.sumOf { it.amount }
-        val totalIncome = state.incomes.sumOf { it.amount }
+        val totalExpense = currentMonthExpenses.sumOf { it.amount }
+        val totalIncome = currentMonthIncomes.sumOf { it.amount }
         val netBalance = totalIncome - totalExpense
+
+        var showMonthPickerSheet by remember { mutableStateOf(false) }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -92,7 +100,7 @@ fun MainScreen(
             // Header
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -123,6 +131,101 @@ fun MainScreen(
                 }
             }
 
+            // Month Selector Pill Capsule
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .sunnyCardShadow(cornerRadius = 16.dp, blurRadius = 8.dp, offsetY = 2.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(SurfaceWhite)
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(16.dp))
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Previous Month Button
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { viewModel.selectPreviousMonth() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.ChevronLeft, contentDescription = "Previous Month", tint = TextDark, modifier = Modifier.size(20.dp))
+                        }
+
+                        // Month Display Name & Picker Trigger
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { showMonthPickerSheet = true }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = TextDark, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = state.selectedMonth.getDisplayName(),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextDark
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(16.dp))
+                        }
+
+                        // Next Month Button
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { viewModel.selectNextMonth() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.ChevronRight, contentDescription = "Next Month", tint = TextDark, modifier = Modifier.size(20.dp))
+                        }
+                    }
+
+                    // "Today" / "Current Month" badge or quick return
+                    if (!state.selectedMonth.isCurrentMonth()) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(BrandYellowSoft)
+                                .clickable { viewModel.resetToCurrentMonth() }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                "Return to Current",
+                                color = TextDark,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(BackgroundMuted)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                "Active Month",
+                                color = TextSecondary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
             // Hero Balance Section: Signature Sunny Yellow Surface Card
             item {
                 Box(
@@ -141,7 +244,7 @@ fun MainScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "TOTAL NET BALANCE", 
+                                "${state.selectedMonth.getMonthShortName().uppercase()} NET BALANCE", 
                                 color = TextDark.copy(alpha = 0.75f), 
                                 fontSize = 12.sp, 
                                 fontWeight = FontWeight.Bold, 
@@ -243,7 +346,7 @@ fun MainScreen(
 
                         // Specific Accounts
                         items(state.accounts) { acc ->
-                            val accExpenses = state.expenses.filter { it.account.equals(acc.name, ignoreCase = true) }
+                            val accExpenses = currentMonthExpenses.filter { it.account.equals(acc.name, ignoreCase = true) }
                             val accSpent = accExpenses.sumOf { it.amount }
                             val icon = when (acc.type) {
                                 "CREDIT_CARD" -> Icons.Default.CreditCard
@@ -322,7 +425,12 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Monthly Category Limits", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            Text(
+                                "${state.selectedMonth.getMonthShortName()} Category Limits", 
+                                fontSize = 15.sp, 
+                                fontWeight = FontWeight.Bold, 
+                                color = TextDark
+                            )
                             Text(
                                 if (state.categoryBudgets.isEmpty()) "+ Set Limits" else "Manage", 
                                 color = TextDark, 
@@ -338,7 +446,7 @@ fun MainScreen(
                             Spacer(modifier = Modifier.height(14.dp))
 
                             state.categoryBudgets.forEach { (cat, limit) ->
-                                val spent = state.expenses.filter { it.category.equals(cat, ignoreCase = true) }.sumOf { it.amount }
+                                val spent = currentMonthExpenses.filter { it.category.equals(cat, ignoreCase = true) }.sumOf { it.amount }
                                 val ratio = if (limit > 0) (spent / limit).toFloat().coerceIn(0f, 1.2f) else 0f
                                 val isOver = spent > limit
                                 val isWarning = ratio >= 0.8f && !isOver
@@ -480,7 +588,12 @@ fun MainScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Recent Activity", color = TextDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "${state.selectedMonth.getMonthShortName()} Activity", 
+                        color = TextDark, 
+                        fontSize = 18.sp, 
+                        fontWeight = FontWeight.Bold
+                    )
                     Text("${displayedExpenses.size} items • Hold to edit", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
@@ -494,9 +607,22 @@ fun MainScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No expenses logged yet", color = TextDark, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(
+                                "No expenses in ${state.selectedMonth.getDisplayName()}", 
+                                color = TextDark, 
+                                fontWeight = FontWeight.Bold, 
+                                fontSize = 16.sp
+                            )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("Incoming banking SMS or manual adds appear here", color = TextSecondary, fontSize = 13.sp)
+                            Text(
+                                if (state.selectedMonth.isCurrentMonth()) 
+                                    "Fresh start for this month! Incoming SMS or manual adds appear here" 
+                                else 
+                                    "No transactions were recorded during this period", 
+                                color = TextSecondary, 
+                                fontSize = 13.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
                         }
                     }
                 }
@@ -644,6 +770,22 @@ fun MainScreen(
                     viewModel.deleteExpense(selectedExpenseForDelete!!.id)
                     selectedExpenseForDelete = null
                 }
+            )
+        }
+
+        // Month Picker Bottom Sheet
+        if (showMonthPickerSheet) {
+            val allTimestamps = (state.expenses.map { it.timestamp } + state.incomes.map { it.timestamp })
+            val availableMonths = DateUtils.getAvailableMonths(allTimestamps)
+
+            MonthPickerBottomSheet(
+                selectedMonth = state.selectedMonth,
+                availableMonths = availableMonths,
+                onMonthSelected = {
+                    viewModel.selectMonth(it)
+                    showMonthPickerSheet = false
+                },
+                onDismiss = { showMonthPickerSheet = false }
             )
         }
     }
@@ -1597,3 +1739,110 @@ fun CategoryBudgetDialog(
         )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MonthPickerBottomSheet(
+    selectedMonth: MonthYear,
+    availableMonths: List<MonthYear>,
+    onMonthSelected: (MonthYear) -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceWhite,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(BorderSubtle)
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 36.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Select Period",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextDark,
+                    letterSpacing = (-0.5).sp
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BrandYellowSoft)
+                        .clickable { onMonthSelected(MonthYear.now()) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text("This Month", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                }
+            }
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(availableMonths) { monthYear ->
+                    val isSelected = monthYear == selectedMonth
+                    val isCurrent = monthYear.isCurrentMonth()
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isSelected) BrandYellowPrimary else BackgroundMuted)
+                            .clickable { onMonthSelected(monthYear) }
+                            .padding(horizontal = 18.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = if (isSelected) TextDark else TextSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Text(
+                                text = monthYear.getDisplayName(),
+                                fontSize = 15.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                color = TextDark
+                            )
+                        }
+
+                        if (isCurrent) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) SurfaceWhite.copy(alpha = 0.85f) else BrandYellowSoft)
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text("Current", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            }
+                        } else if (isSelected) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = TextDark, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

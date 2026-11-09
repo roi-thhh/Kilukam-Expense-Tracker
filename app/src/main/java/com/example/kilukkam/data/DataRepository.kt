@@ -36,6 +36,45 @@ data class TargetVault(
     val category: String = "Goal"
 )
 
+@Serializable
+enum class DebtType {
+    LENT,      // Money given to others -> You'll Get (Receivable)
+    BORROWED   // Money taken from others -> You'll Give (Payable)
+}
+
+@Serializable
+enum class DebtStatus {
+    ACTIVE,
+    PARTIALLY_SETTLED,
+    SETTLED
+}
+
+@Serializable
+data class DebtRepayment(
+    val id: String,
+    val amount: Double,
+    val timestamp: Long,
+    val note: String? = null
+)
+
+@Serializable
+data class DebtRecord(
+    val id: String,
+    val personName: String,
+    val phoneNumber: String? = null,
+    val type: DebtType,
+    val originalAmount: Double,
+    val paidAmount: Double = 0.0,
+    val note: String? = null,
+    val timestamp: Long,
+    val dueDate: Long? = null,
+    val status: DebtStatus = DebtStatus.ACTIVE,
+    val repayments: List<DebtRepayment> = emptyList()
+) {
+    val remainingAmount: Double
+        get() = (originalAmount - paidAmount).coerceAtLeast(0.0)
+}
+
 class DataRepository(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("kilukkam_prefs", Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
@@ -349,6 +388,113 @@ class DataRepository(context: Context) {
         prefs.edit().putFloat("budget_goal", budget.toFloat()).apply()
     }
 
+    // --- Debts / Loans / Friends Ledger ---
+    fun getDebts(): List<DebtRecord> {
+        val debtsJson = prefs.getString("debts_records", null)
+        return if (debtsJson != null) {
+            try {
+                json.decodeFromString<List<DebtRecord>>(debtsJson)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        } else {
+            emptyList()
+        }
+    }
+
+    fun addDebt(
+        personName: String,
+        amount: Double,
+        type: DebtType,
+        note: String? = null,
+        dueDate: Long? = null,
+        phoneNumber: String? = null
+    ): DebtRecord {
+        val debts = getDebts().toMutableList()
+        val record = DebtRecord(
+            id = UUID.randomUUID().toString(),
+            personName = personName.trim(),
+            phoneNumber = phoneNumber?.trim()?.ifBlank { null },
+            type = type,
+            originalAmount = amount,
+            paidAmount = 0.0,
+            note = note?.trim()?.ifBlank { null },
+            timestamp = System.currentTimeMillis(),
+            dueDate = dueDate,
+            status = DebtStatus.ACTIVE,
+            repayments = emptyList()
+        )
+        debts.add(0, record)
+        prefs.edit().putString("debts_records", json.encodeToString(debts)).apply()
+        return record
+    }
+
+    fun recordDebtRepayment(debtId: String, repaymentAmount: Double, note: String? = null) {
+        if (repaymentAmount <= 0) return
+        val debts = getDebts().toMutableList()
+        val index = debts.indexOfFirst { it.id == debtId }
+        if (index != -1) {
+            val debt = debts[index]
+            val newPaid = debt.paidAmount + repaymentAmount
+            val newStatus = if (newPaid >= debt.originalAmount - 0.01) {
+                DebtStatus.SETTLED
+            } else {
+                DebtStatus.PARTIALLY_SETTLED
+            }
+            val newRepayments = debt.repayments + DebtRepayment(
+                id = UUID.randomUUID().toString(),
+                amount = repaymentAmount,
+                timestamp = System.currentTimeMillis(),
+                note = note?.trim()?.ifBlank { null }
+            )
+            debts[index] = debt.copy(
+                paidAmount = newPaid,
+                status = newStatus,
+                repayments = newRepayments
+            )
+            prefs.edit().putString("debts_records", json.encodeToString(debts)).apply()
+        }
+    }
+
+    fun settleDebt(debtId: String) {
+        val debts = getDebts().toMutableList()
+        val index = debts.indexOfFirst { it.id == debtId }
+        if (index != -1) {
+            val debt = debts[index]
+            val remaining = debt.remainingAmount
+            val newRepayments = if (remaining > 0) {
+                debt.repayments + DebtRepayment(
+                    id = UUID.randomUUID().toString(),
+                    amount = remaining,
+                    timestamp = System.currentTimeMillis(),
+                    note = "Fully Settled"
+                )
+            } else {
+                debt.repayments
+            }
+            debts[index] = debt.copy(
+                paidAmount = debt.originalAmount,
+                status = DebtStatus.SETTLED,
+                repayments = newRepayments
+            )
+            prefs.edit().putString("debts_records", json.encodeToString(debts)).apply()
+        }
+    }
+
+    fun deleteDebt(debtId: String) {
+        val debts = getDebts().filter { it.id != debtId }
+        prefs.edit().putString("debts_records", json.encodeToString(debts)).apply()
+    }
+
+    fun updateDebt(updatedDebt: DebtRecord) {
+        val debts = getDebts().toMutableList()
+        val index = debts.indexOfFirst { it.id == updatedDebt.id }
+        if (index != -1) {
+            debts[index] = updatedDebt
+            prefs.edit().putString("debts_records", json.encodeToString(debts)).apply()
+        }
+    }
+
     fun clearAllData() {
         prefs.edit()
             .remove("expenses")
@@ -359,6 +505,7 @@ class DataRepository(context: Context) {
             .remove("category_budgets")
             .remove("target_vaults")
             .remove("merchant_categories")
+            .remove("debts_records")
             .apply()
     }
 }

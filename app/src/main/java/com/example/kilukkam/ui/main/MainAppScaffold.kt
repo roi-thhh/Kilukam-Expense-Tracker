@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,7 +25,7 @@ import com.example.kilukkam.theme.*
 import com.example.kilukkam.ui.sunnyCardShadow
 
 enum class Screen {
-    Dashboard, Analytics, Settings
+    Dashboard, Dues, Analytics, Settings
 }
 
 @Composable
@@ -80,6 +81,19 @@ fun MainAppScaffold(
                     )
                 )
                 NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Person, contentDescription = "Dues") },
+                    label = { Text("Dues") },
+                    selected = currentScreen == Screen.Dues,
+                    onClick = { currentScreen = Screen.Dues },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = TextDark,
+                        selectedTextColor = TextDark,
+                        indicatorColor = BrandYellowPrimary,
+                        unselectedIconColor = TextSecondary,
+                        unselectedTextColor = TextSecondary
+                    )
+                )
+                NavigationBarItem(
                     icon = { Icon(Icons.Filled.PieChart, contentDescription = "Analytics") },
                     label = { Text("Analytics") },
                     selected = currentScreen == Screen.Analytics,
@@ -95,14 +109,16 @@ fun MainAppScaffold(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showManualEntry = true },
-                containerColor = BrandYellowPrimary,
-                contentColor = TextOnYellow,
-                shape = RoundedCornerShape(22.dp),
-                modifier = Modifier.sunnyCardShadow(cornerRadius = 22.dp, blurRadius = 10.dp, offsetY = 3.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Expense")
+            if (currentScreen == Screen.Dashboard) {
+                FloatingActionButton(
+                    onClick = { showManualEntry = true },
+                    containerColor = BrandYellowPrimary,
+                    contentColor = TextOnYellow,
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.sunnyCardShadow(cornerRadius = 22.dp, blurRadius = 10.dp, offsetY = 3.dp)
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add Expense")
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -129,8 +145,29 @@ fun MainAppScaffold(
                         }
                     )
                 }
+                Screen.Dues -> {
+                    DuesScreen(
+                        debts = state.debts,
+                        onAddDebt = { name, amount, type, note, dueDate, phone ->
+                            viewModel.addDebt(name, amount, type, note, dueDate, phone)
+                        },
+                        onSettleDebt = { debtId ->
+                            viewModel.settleDebt(debtId)
+                        },
+                        onPartialRepayment = { debtId, amount, note ->
+                            viewModel.recordDebtRepayment(debtId, amount, note)
+                        },
+                        onDeleteDebt = { debtId ->
+                            viewModel.deleteDebt(debtId)
+                        }
+                    )
+                }
                 Screen.Analytics -> {
-                    AnalyticsScreen(expenses = state.expenses)
+                    AnalyticsScreen(
+                        expenses = state.expenses,
+                        initialMonth = state.selectedMonth,
+                        onMonthChange = { viewModel.selectMonth(it) }
+                    )
                 }
                 Screen.Settings -> {
                     SettingsScreen(
@@ -139,7 +176,7 @@ fun MainAppScaffold(
                     )
                 }
             }
-            
+
             if (showManualEntry) {
                 ManualEntryDialog(
                     categories = state.categories,
